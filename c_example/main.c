@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include "FamarkCloudAPI-C.h"
-#include <json-c/json.h>
 
 int main()
 {
@@ -40,21 +39,30 @@ int main()
 
     while (userResp == 'y' || userResp == 'Y')
     {
-        char displayName[100], systemName[100];
-        printf("\nDisplay Name:");
-        fgets(displayName, 100, stdin);
-        displayName[strcspn(displayName, "\n")] = 0;
-        printf("\nSystemName:");
-        fgets(systemName, 100, stdin);
-        systemName[strcspn(systemName, "\n")] = 0;
-        char profileData[1000] = "{\"DisplayName\": \"";
-        strcat_s(profileData, sizeof(profileData), displayName);
-        strcat_s(profileData, sizeof(profileData), "\", \"SystemName\": \"");
-        strcat_s(profileData, sizeof(profileData), systemName);
+       char firstName[100], lastName[100], phone[100], email[100];
+        printf("\nEnter FirstName:");
+        fgets( firstName, 100, stdin);
+        firstName[strcspn(firstName, "\n")] = 0;
+        printf("\nEnter LastName:");
+        fgets(lastName, 100, stdin);
+        lastName[strcspn(lastName, "\n")] = 0;
+        printf("\nEnter Phone:");
+        fgets( phone, 100, stdin);
+        phone[strcspn(phone, "\n")] = 0;
+        printf("\nEnter Email:");
+        fgets( email, 100, stdin);
+        email[strcspn(email, "\n")] = 0;
+        char profileData[1000] = "{\"FirstName\": \"";
+        strcat_s(profileData, sizeof(profileData), firstName);
+        strcat_s(profileData, sizeof(profileData), "\", \"LastName\": \"");
+        strcat_s(profileData, sizeof(profileData), lastName);
+        strcat_s(profileData, sizeof(profileData), "\", \"Email\": \"");
+        strcat_s(profileData, sizeof(profileData), email);
+        strcat_s(profileData, sizeof(profileData), "\", \"Phone\": \"");
+        strcat_s(profileData, sizeof(profileData), phone);        
         strcat_s(profileData, sizeof(profileData), "\"}");
-
         //Calling CreateRecord action on System_Profile entity of System solution
-        char* recordData = famark_api_post_data("/System_Profile/CreateRecord", profileData, sessionId);
+        char* recordData = famark_api_post_data("/Business_Contact/CreateRecord", profileData, sessionId);
 
         struct json_object* recordObject = json_tokener_parse(recordData);
         const char* recordId = json_object_get_string(recordObject);
@@ -73,8 +81,8 @@ int main()
     }
 
     //Calling RetrieveMultipleRecords action on the Hospital_Doctor entity
-    char data[] = "{\"Columns\": \"DisplayName,SystemName\"}";
-    char* records = famark_api_post_data("/System_Profile/RetrieveMultipleRecords", data, sessionId);
+    char data[] = "{\"Columns\": \"FullName, Phone, Email, Business_ContactId\"}";
+    char* records = famark_api_post_data("/Business_Contact/RetrieveMultipleRecords", data, sessionId);
     struct json_object* recordObjects = json_tokener_parse(records);
 
     int numRecords = json_object_array_length(recordObjects);
@@ -90,5 +98,87 @@ int main()
 
     free(records);
 
+// Updating records by taking input from user
+    printf("Do you want to update new record (y/n) \n");
+    char userUpdateResp = getch();
+    //clearing new lines from input buffer
+    while (getchar() != '\n');
+
+    while (userUpdateResp == 'y' || userUpdateResp == 'Y')
+    {
+        char contactId[100],firstName[100], lastName[100], phone[100], email[100];
+        printf("\nEnter Business_ContactId:");
+        fgets( contactId, 100, stdin);
+        contactId[strcspn(contactId, "\n")] = 0;
+        printf("\nEnter FirstName:");
+        fgets( firstName, 100, stdin);
+        firstName[strcspn(firstName, "\n")] = 0;
+        printf("\nEnter LastName:");
+        fgets(lastName, 100, stdin);
+        lastName[strcspn(lastName, "\n")] = 0;
+        printf("\nEnter Phone:");
+        fgets( phone, 100, stdin);
+        phone[strcspn(phone, "\n")] = 0;
+        printf("\nEnter Email:");
+        fgets( email, 100, stdin);
+        email[strcspn(email, "\n")] = 0;
+        char profileData[1000] = "{\"FirstName\": \"";
+        strcat_s(profileData, sizeof(profileData), firstName);
+        strcat_s(profileData, sizeof(profileData), "\", \"Business_ContactId\": \"");
+        strcat_s(profileData, sizeof(profileData), contactId);
+        strcat_s(profileData, sizeof(profileData), "\", \"LastName\": \"");
+        strcat_s(profileData, sizeof(profileData), lastName);
+        strcat_s(profileData, sizeof(profileData), "\", \"Email\": \"");
+        strcat_s(profileData, sizeof(profileData), email);
+        strcat_s(profileData, sizeof(profileData), "\", \"Phone\": \"");
+        strcat_s(profileData, sizeof(profileData), phone);        
+        strcat_s(profileData, sizeof(profileData), "\"}");
+
+        //Calling CreateRecord action on System_Profile entity of System solution
+        char* recordData = famark_api_post_data("/Business_Contact/UpdateRecord", profileData, sessionId);
+
+        struct json_object* recordObject = json_tokener_parse(recordData);
+        const char* recordId = json_object_get_string(recordObject);
+
+        free(recordData);
+
+        if (recordId) {
+            printf("Update Record Id: %s\n", recordId);
+            //Login to your famark cloud domain to see the updated record under System => Profile
+            printf("Do you want to Update more profile record (y/n)? \n");
+        }
+        else {
+            printf("Do you want to try again (y/n)? \n");
+        }
+        userUpdateResp = getch();
+    }
+
+
+    // Deleting records by taking input from user
+    printf("Do you want to delete new record (y/n) \n");
+    char userDeleteResp = getch();
+    //clearing new lines from input buffer
+    while (getchar() != '\n');
+
+    while (userDeleteResp == 'y' || userDeleteResp == 'Y')
+    {
+        char contactId[100];
+        printf("\nEnter ContactId:");
+        fgets( contactId, 100, stdin);
+        contactId[strcspn(contactId, "\n")] = 0;
+        char profileData[1000] = "{\"Business_ContactId\": \"";
+        strcat_s(profileData, sizeof(profileData), contactId);              
+        strcat_s(profileData, sizeof(profileData), "\"}");
+        //Calling CreateRecord action on System_Profile entity of System solution
+        char* recordData = famark_api_post_data("/Business_Contact/DeleteRecord", profileData, sessionId);
+
+        struct json_object* recordObject = json_tokener_parse(recordData);
+        const char* recordId = json_object_get_string(recordObject);
+
+        free(recordData);
+        
+        printf("Do you want to delete new record (y/n) \n");
+        userDeleteResp = getch();
+    }
     return 0;
 }
